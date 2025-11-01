@@ -800,24 +800,20 @@ def validate_date_range():
 
 @app.route("/api/update-llm-settings", methods=["POST"])
 def update_llm_settings():
-    """API endpoint to update OpenAI API key and base URL."""
+    """API endpoint to update OpenAI API key, base URL, and model names."""
     try:
         data = request.get_json()
         api_key = data.get("api_key")
         base_url = data.get("base_url")
+        agent_llm_model = data.get("agent_llm_model")
+        graph_llm_model = data.get("graph_llm_model")
 
-        if api_key:
-            os.environ["OPENAI_API_KEY"] = api_key
-
-        if base_url:
-            os.environ["OPENAI_BASE_URL"] = base_url
-        else:
-            # If base_url is empty or None, remove it from the environment
-            if "OPENAI_BASE_URL" in os.environ:
-                del os.environ["OPENAI_BASE_URL"]
-
-        # Refresh the trading graph LLMs with the new settings
-        analyzer.trading_graph.refresh_llms()
+        analyzer.trading_graph.update_llm_settings(
+            api_key=api_key,
+            base_url=base_url,
+            agent_llm_model=agent_llm_model,
+            graph_llm_model=graph_llm_model,
+        )
 
         return jsonify({"success": True, "message": "LLM settings updated successfully"})
 
@@ -827,15 +823,17 @@ def update_llm_settings():
 
 @app.route("/api/get-llm-settings")
 def get_llm_settings():
-    """API endpoint to check if API key and base URL are set."""
+    """API endpoint to get current LLM settings."""
     try:
+        config = analyzer.trading_graph.config
         api_key = os.environ.get("OPENAI_API_KEY")
-        base_url = os.environ.get("OPENAI_BASE_URL")
 
         response = {
             "has_api_key": False,
             "masked_key": None,
-            "base_url": base_url
+            "base_url": config.get("base_url"),
+            "agent_llm_model": config.get("agent_llm_model"),
+            "graph_llm_model": config.get("graph_llm_model"),
         }
 
         if api_key and api_key != "your-openai-api-key-here":

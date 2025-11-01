@@ -1101,6 +1101,22 @@
                                      <small class="form-text text-muted">For OpenAI-compatible APIs like OpenRouter.</small>
                                 </div>
 
+                                <!-- Agent LLM Model Input -->
+                                <div class="form-group">
+                                    <label class="form-label">Agent LLM Model</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="agentLLMInput" placeholder="e.g., gpt-4o-mini">
+                                    </div>
+                                </div>
+
+                                <!-- Graph LLM Model Input -->
+                                <div class="form-group">
+                                    <label class="form-label">Graph LLM Model</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="graphLLMInput" placeholder="e.g., gpt-4o">
+                                    </div>
+                                </div>
+
                                 <div class="form-group text-center">
                                     <button class="btn btn-outline-primary" type="button" onclick="updateLLMSettings()">
                                         <i class="fas fa-save"></i> Update LLM Settings
@@ -1470,6 +1486,12 @@
                         statusMessages.push(`Base URL is set: ${data.base_url}`);
                         document.getElementById('baseUrlInput').value = data.base_url;
                     }
+                    if (data.agent_llm_model) {
+                        document.getElementById('agentLLMInput').value = data.agent_llm_model;
+                    }
+                    if (data.graph_llm_model) {
+                        document.getElementById('graphLLMInput').value = data.graph_llm_model;
+                    }
                     if (statusMessages.length > 0) {
                         showApiKeyStatus(statusMessages.join('<br>'));
                     }
@@ -1741,10 +1763,9 @@
          function updateLLMSettings() {
              const apiKey = document.getElementById('apiKeyInput').value.trim();
              const baseUrl = document.getElementById('baseUrlInput').value.trim();
+             const agentLLMModel = document.getElementById('agentLLMInput').value.trim();
+             const graphLLMModel = document.getElementById('graphLLMInput').value.trim();
              
-             // We don't require API key to be present, as user might only want to update the base_url
-             // or clear the key. The backend will handle validation.
-
              // Hide previous messages
              hideApiKeyMessages();
              
@@ -1755,11 +1776,14 @@
              updateBtn.disabled = true;
              
              // Prepare payload
-             const payload = {};
+             const payload = {
+                 base_url: baseUrl,
+                 agent_llm_model: agentLLMModel,
+                 graph_llm_model: graphLLMModel
+             };
              if (apiKey) {
                  payload.api_key = apiKey;
              }
-             payload.base_url = baseUrl; // Send even if empty to allow clearing
 
              // Make API call to update settings
              fetch('/api/update-llm-settings', {
