@@ -29,17 +29,15 @@ class TradingGraph:
         self.tool_nodes = self._set_tool_nodes()
 
         # --- Graph logic and setup ---
-        self.refresh_llms()  # Initial setup of LLMs and graph
+        if self._get_api_key():
+            self.refresh_llms()
 
     def _get_api_key(self):
         """
-        Get API key with proper validation and error handling.
+        Get API key from config or environment variable.
 
         Returns:
-            str: The OpenAI API key
-
-        Raises:
-            ValueError: If API key is missing or invalid
+            str or None: The OpenAI API key if found, otherwise None.
         """
         # First check if API key is provided in config
         api_key = self.config.get("api_key")
@@ -48,22 +46,11 @@ class TradingGraph:
         if not api_key:
             api_key = os.environ.get("OPENAI_API_KEY")
 
-        # Validate the API key
-        if not api_key:
-            raise ValueError(
-                "OpenAI API key not found. Please set it using one of these methods:\n"
-                "1. Set environment variable: export OPENAI_API_KEY='your-key-here'\n"
-                "2. Update the config with: config['api_key'] = 'your-key-here'\n"
-                "3. Use the web interface to update the API key"
-            )
+        # Return the key if it's not a placeholder
+        if api_key and api_key != "your-openai-api-key-here" and api_key != "":
+            return api_key
 
-        if api_key == "your-openai-api-key-here" or api_key == "":
-            raise ValueError(
-                "Please replace the placeholder API key with your actual OpenAI API key. "
-                "You can get one from: https://platform.openai.com/api-keys"
-            )
-
-        return api_key
+        return None
 
     def _set_tool_nodes(self) -> Dict[str, ToolNode]:
         """
@@ -126,3 +113,33 @@ class TradingGraph:
 
         # Recreate the main graph
         self.graph = self.graph_setup.set_graph()
+
+    def update_llm_settings(self, api_key: str, base_url: str = None, agent_llm_model: str = None, graph_llm_model: str = None):
+        """
+        Update LLM settings and refresh the clients.
+
+        Args:
+            api_key (str): The new OpenAI API key.
+            base_url (str, optional): The new API base_url.
+            agent_llm_model (str, optional): The new model name for the agent LLM.
+            graph_llm_model (str, optional): The new model name for the graph LLM.
+        """
+        if api_key:
+            self.config["api_key"] = api_key
+            os.environ["OPENAI_API_KEY"] = api_key
+
+        if base_url:
+            self.config["base_url"] = base_url
+            os.environ["OPENAI_BASE_URL"] = base_url
+        else:
+            self.config["base_url"] = None
+            if "OPENAI_BASE_URL" in os.environ:
+                del os.environ["OPENAI_BASE_URL"]
+
+        if agent_llm_model:
+            self.config["agent_llm_model"] = agent_llm_model
+
+        if graph_llm_model:
+            self.config["graph_llm_model"] = graph_llm_model
+
+        self.refresh_llms()
