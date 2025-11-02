@@ -5,10 +5,10 @@
 
 DEFAULT_CONFIG = {
     # 用于单个代理（如指标、模式、趋势分析）的语言模型
-    "agent_llm_model": "gpt-4o-mini",
+    "agent_llm_model": "tngtech/deepseek-r1t2-chimera:free",
 
     # 用于图逻辑和最终决策制定的语言模型
-    "graph_llm_model": "gpt-4o",
+    "graph_llm_model": "tngtech/deepseek-r1t2-chimera:free",
 
     # 代理响应的温度（控制创造性，值越低越确定）
     "agent_llm_temperature": 0.1,
@@ -20,5 +20,5 @@ DEFAULT_CONFIG = {
     "api_key": "",
 
     # OpenAI 兼容的 API base_url（例如 OpenRouter）
-    "base_url": None,
+    "base_url": "https://openrouter.ai/api/v1",
 }
